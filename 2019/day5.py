@@ -1,12 +1,23 @@
 
+# PART 1
 ADD1 = '1'
 ADD2 = '01'
 MUL1 = '2'
 MUL2 = '02'
 LOAD = '3'
-PRINT = '4'
+PRINT1 = '4'
 PRINT2 = '04'
 END = '99'
+
+# PART 2
+JIT1 = '5'
+JIT2 = '05'
+JIF1 = '6'
+JIF2 = '06'
+LT1 = '7'
+LT2 = '07'
+EQ1 = '8'
+EQ2 = '08'
 
 def read_input(file):
     input = open(file, 'r')
@@ -23,112 +34,129 @@ class IntComputer():
         self.program_len = len(self.program)
     
     def load(self):
-        val = int(input())
-        op1 = self.program[self.counter + 1]
-        #print(op1)
-        self.program[op1] = val
-        return 2
+        inp_val = int(input())
+        address = self.program[self.counter + 1]
+        self.program[address] = inp_val
+        self.__update_pointer(self.counter + 2)
 
     def print(self, params):
         val = self.program[self.counter + 1]
         if len(params) == 0:
-            val = self.program[val] # Output value
+            val = self.program[val]
+        # Diagnostic output
         print("PRINT: " + str(val))
-        return 2
-
-    def __get_ops(self, params):
-        address = self.program[self.counter + 1]
-        address2 = self.program[self.counter + 2]
-        address3 = self.program[self.counter + 3]
-
-        op1 = address
-        op2 = address2
-
-        if len(params) == 0:
-            print("both positional")
-            op1 = self.program[address]
-            op2 = self.program[address2]
-
-        if len(params) == 1:
-            print("2nd positional")
-            op2 = self.program[address2]
-
-        if len(params) == 2:
-
-            if params[1] == '0':
-                print("1st positional")
-                op1 = self.program[address]
-            else:
-                print("both immidiate")
-        
-        return op1, op2, address3
+        self.__update_pointer(self.counter + 2)
 
     def add(self, params):
-        ops = self.__get_ops(params)
-
+        ops = self.__get_ops_3(params)
         self.program[ops[2]] = ops[0] + ops[1]
-       # print("ADD")
-       # print("Res address: " + str(ops[2]))
-       # print(self.program[ops[2]], ops[0], ops[1])
-        return 4
+        self.__update_pointer(self.counter + 4)
 
     def mul(self, params):
-        ops = self.__get_ops(params)
-
-        
+        ops = self.__get_ops_3(params)
         self.program[ops[2]] = ops[0] * ops[1]
-      #  print("MUL")
-       # print("Res address: " + str(ops[2]))
-       # print(self.program[ops[2]], ops[0], ops[1])
-        return 4
+        self.__update_pointer(self.counter + 4)
 
-    def __next_op(self, inc_counter):
-        self.counter += inc_counter
+    def equals(self, params):
+        ops = self.__get_ops_3(params)
+        self.program[ops[2]] = (1 if ops[0] == ops[1] else 0)
+        self.__update_pointer(self.counter + 4)
+
+    def less(self, params):
+        ops = self.__get_ops_3(params)
+        self.program[ops[2]] = (1 if ops[0] < ops[1] else 0)
+        self.__update_pointer(self.counter + 4)
+
+    def jump_true(self, params):
+        condition, pointer, _ = self.__get_ops_3(params)
+        pointer = (pointer if condition != 0 else self.counter + 3)
+        self.__update_pointer(pointer)
+
+    def jump_false(self, params):
+        condition, pointer, _ = self.__get_ops_3(params)
+        pointer = (pointer if condition == 0 else self.counter + 3)
+        self.__update_pointer(pointer)
+
+    def __get_ops_3(self, params):
+        value_one   = self.program[self.counter + 1]
+        value_two   = self.program[self.counter + 2]
+        res_address = self.program[self.counter + 3]
+
+        op1 = value_one
+        op2 = value_two
+
+        if len(params) == 0:
+            op1 = self.program[value_one]
+            op2 = self.program[value_two]
+
+        if len(params) == 1:
+            op2 = self.program[value_two]
+
+        if len(params) == 2 and params[1] == '0':
+            op1 = self.program[value_one]
+
+        return op1, op2, res_address
+
+    def __update_pointer(self, pointer):
+        self.counter = pointer
 
     def part1(self):
         finished = False
         while not finished:
-            opcode = str(self.program[self.counter])
-            params = []
-            if len(opcode) > 1:
-                params = opcode[:-2]
-                opcode = opcode[-2:]
-            inc_counter = 0
-            print(opcode, params)
+            opcode, params = self.__instruction()
             if opcode == ADD1 or opcode == ADD2:
-                inc_counter = self.add(params)
+                self.add(params)
             elif opcode == MUL1 or opcode == MUL2:
-                inc_counter = self.mul(params)
+                self.mul(params)
             elif opcode == LOAD:
-                inc_counter = self.load()
-            elif opcode == PRINT or opcode == PRINT2:
-                inc_counter = self.print(params)
+                self.load()
+            elif opcode == PRINT1 or opcode == PRINT2:
+                self.print(params)
             elif opcode == END:
                 finished = True
             else:
                 print("No op")
-            self.__next_op(inc_counter)
+    
+    def part2(self):
+        finished = False
+        while not finished:
+            opcode, params = self.__instruction()
 
-    def __special_output(self, noun, verb):
-        self.program[1] = noun
-        self.program[2] = verb
-        return self.part1()
-
-    def part2(self, noun_range, verb_range, wanted_output):
-        for noun in range(noun_range):
-            for verb in range(verb_range):
-                output = self.__special_output(noun, verb)
-                if output == wanted_output:
-                    return noun, verb
-                self.__reset_input()
-        return 0, 0
-            
-    def __reset_input(self):
+            if opcode == ADD1 or opcode == ADD2:
+                self.add(params)
+            elif opcode == MUL1 or opcode == MUL2:
+                self.mul(params)
+            elif opcode == LOAD:
+                self.load()
+            elif opcode == PRINT1 or opcode == PRINT2:
+                self.print(params)
+            elif opcode == JIT1 or opcode == JIT2:
+                self.jump_true(params)
+            elif opcode == JIF1 or opcode == JIF2:
+                self.jump_false(params)
+            elif opcode == EQ1 or opcode == EQ2:
+                self.equals(params)
+            elif opcode == LT1 or opcode == LT2:
+                self.less(params)
+            elif opcode == END:
+                finished = True
+            else:
+                print("No op")
+    
+    def __instruction(self):
+        opcode = str(self.program[self.counter])
+        params = []
+        if len(opcode) > 1:
+            params = opcode[:-2]
+            opcode = opcode[-2:]
+        return opcode, params
+             
+    def reset(self):
         self.program = self.orig_program.copy()
         self.counter = 0
 
-
-# PART 1
 prg = read_input('day5_input.txt')
 comp = IntComputer(prg)
 comp.part1()
+comp.reset()
+comp.part2()
