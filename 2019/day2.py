@@ -18,7 +18,7 @@ class IntComputer():
         self.program[1] = 12
         self.program[2] = 2
         self.program_len = len(self.program)
-        
+
     def add(self):
         op1 = self.program[self.counter + 1]
         op2 = self.program[self.counter + 2]
