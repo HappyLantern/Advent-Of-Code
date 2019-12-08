@@ -1,5 +1,3 @@
-
-# PART 1
 ADD1 = '1'
 ADD2 = '01'
 MUL1 = '2'
@@ -8,8 +6,6 @@ LOAD = '3'
 PRINT1 = '4'
 PRINT2 = '04'
 END = '99'
-
-# PART 2
 JIT1 = '5'
 JIT2 = '05'
 JIF1 = '6'
@@ -18,6 +14,8 @@ LT1 = '7'
 LT2 = '07'
 EQ1 = '8'
 EQ2 = '08'
+
+import itertools
 
 def read_input(file):
     input = open(file, 'r')
@@ -32,19 +30,18 @@ class IntComputer():
         self.counter = 0
         self.program = program
         self.program_len = len(self.program)
+        self.finished = False
     
-    def load(self):
-        inp_val = int(input())
+    def load(self, load_val):
         address = self.program[self.counter + 1]
-        self.program[address] = inp_val
+        self.program[address] = (load_val[0] if self.counter == 0 else load_val[1])
         self.__update_pointer(self.counter + 2)
 
     def print(self, params):
         val = self.program[self.counter + 1]
         if len(params) == 0:
             val = self.program[val]
-        # Diagnostic output
-        print("PRINT: " + str(val))
+        self.output = val
         self.__update_pointer(self.counter + 2)
 
     def add(self, params):
@@ -100,36 +97,19 @@ class IntComputer():
     def __update_pointer(self, pointer):
         self.counter = pointer
 
-    def part1(self):
-        finished = False
-        while not finished:
+    def run(self, phase, inp):
+        load_vals = [phase, inp]
+        while not self.finished:
             opcode, params = self.__instruction()
             if opcode == ADD1 or opcode == ADD2:
                 self.add(params)
             elif opcode == MUL1 or opcode == MUL2:
                 self.mul(params)
             elif opcode == LOAD:
-                self.load()
+                self.load(load_vals)
             elif opcode == PRINT1 or opcode == PRINT2:
                 self.print(params)
-            elif opcode == END:
-                finished = True
-            else:
-                print("No op")
-    
-    def part2(self):
-        finished = False
-        while not finished:
-            opcode, params = self.__instruction()
-
-            if opcode == ADD1 or opcode == ADD2:
-                self.add(params)
-            elif opcode == MUL1 or opcode == MUL2:
-                self.mul(params)
-            elif opcode == LOAD:
-                self.load()
-            elif opcode == PRINT1 or opcode == PRINT2:
-                self.print(params)
+                break
             elif opcode == JIT1 or opcode == JIT2:
                 self.jump_true(params)
             elif opcode == JIF1 or opcode == JIF2:
@@ -139,9 +119,11 @@ class IntComputer():
             elif opcode == LT1 or opcode == LT2:
                 self.less(params)
             elif opcode == END:
-                finished = True
+                self.finished = True
             else:
                 print("No op")
+
+        return self.output
     
     def __instruction(self):
         opcode = str(self.program[self.counter])
@@ -153,4 +135,81 @@ class IntComputer():
              
     def reset(self):
         self.program = self.orig_program.copy()
+        self.finished = False
         self.counter = 0
+        
+class Amplifier():
+
+    def __init__(self, program):
+        self.computer = IntComputer(program)
+        self.result   = 0
+
+    def amplify(self, phase, inp):
+        self.result = self.computer.run(phase, inp)
+        return self.result
+    
+    def reset_amplifier(self):
+        self.computer.reset()
+
+    def finished(self):
+        return self.computer.finished
+
+class AmplifierSeries():
+
+    def __init__(self, n_amp, program):
+        self.n_amp = n_amp
+        self.program = program
+        self.amplifiers = []
+        for i in range(n_amp):
+            self.amplifiers.append(Amplifier(program.copy()))
+        
+    def part1(self, phase_base, inp):
+        phase_permutations = list(itertools.permutations(phase_base))
+
+        output = []
+        for phases in phase_permutations:
+            output.append(self.__part1(phases, inp))
+            self.__reset_amplifiers()
+
+        return max(output)
+
+    def __part1(self, phases, inp):
+        for i in range(self.n_amp):
+            inp = self.amplifiers[i].amplify(phases[i], inp)
+        return inp
+
+    def part2(self, phase_base, inp):
+        phase_permutations = list(itertools.permutations(phase_base))
+        output = []
+
+        for phases in phase_permutations:
+            output.append(self.__part2(phases, inp))
+            self.__reset_amplifiers()
+
+        return max(output)
+    def __part2(self, phase, inp):
+
+        while not all(amplifier.finished() for amplifier in self.amplifiers):
+            for i in range(self.n_amp):
+                inp = self.amplifiers[i].amplify(phase[i], inp)
+
+        return inp
+    
+    def __reset_amplifiers(self):
+        for amplifier in self.amplifiers:
+            amplifier.reset_amplifier()
+
+program = read_input('day7_input.txt')
+init_input = 0
+number_amplifiers = 5
+series = AmplifierSeries(number_amplifiers, program)
+
+# PART 1
+phases = [0, 1, 2, 3, 4]
+ans = series.part1(phases, init_input)
+print(ans)
+
+# PART 2
+phases = [5, 6, 7, 8, 9]
+ans = series.part2(phases, init_input)
+print(ans)
