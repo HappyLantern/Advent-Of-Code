@@ -3,8 +3,6 @@ def read_input(file):
     input = input.read().strip().split('\n')
     return input
 
-
-
 class Orbit():
     def __init__(self, name, orbit):
         self.name = name
@@ -58,7 +56,6 @@ class OrbitMap():
         goal  = self.orbit_map['SAN']
 
         while start.name != 'COM':
-            print(start.name)
             start = self.orbit_map[start.orbit]
             path_1.append(start.name)
         
@@ -68,14 +65,15 @@ class OrbitMap():
 
         matches = self.find_matching_index(path_1, path_2)
         travel_dist = matches[0][0] + matches[0][1]
-        print(travel_dist)
+        return travel_dist
         
 orbit_map = read_input('day6_input.txt')
 orbit_map = OrbitMap(orbit_map)
 orbit_map.build_orbit_map()
-#orbit_map.part1()
+orbit_map.part1()
 print(orbit_map.orbit_sum)
-orbit_map.part2_new()
+ans = orbit_map.part2()
+print(ans)
 
 
 

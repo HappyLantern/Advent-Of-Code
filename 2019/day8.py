@@ -12,7 +12,6 @@ class LayeredImage():
         self.layers     = []
         self.__create_layers()
 
-
     def __create_layers(self):
         index = 0
         for _ in range(self.n_layers):
@@ -83,6 +82,4 @@ image = image_builder.build_image()
 image = np.array(image)
 matplotlib.pyplot.imsave('message.png', image)
 
-for i in range(height):
-    print(image[i])
 
