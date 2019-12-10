@@ -35,7 +35,6 @@ class IntComputer():
         self.program_len = len(self.program)
         self.finished = False
     
-    # Currently in POS mode, support IM and REL?
     def update_relative(self, params):
 
         if params[0] == POS:
@@ -45,8 +44,6 @@ class IntComputer():
         elif params[0] == IM:
             value = self.program[self.counter + 1]
             
-        # Maybe add modes
-
         self.relative += value
         self.__update_pointer(self.counter + 2)
 
@@ -131,7 +128,6 @@ class IntComputer():
         elif params[2] == IM:
             op3 = self.counter + 3
 
-        #print(op1, op2, op3)
         return op1, op2, op3
 
     def __update_pointer(self, pointer):
@@ -140,38 +136,27 @@ class IntComputer():
     def run(self):
         while not self.finished:
             opcode, params = self.__instruction()
-            #print(opcode, params)
             if opcode == ADD:
-                #print("ADD")
                 self.add(params)
             elif opcode == MUL:
-                #print("MUL")
                 self.mul(params)
             elif opcode == LOAD:
-                #print("LOAD")
                 self.load(params)
             elif opcode == PRINT:
-                #print("PRINT")
                 self.print(params)
                 if self.interrupt:
                     break
             elif opcode == JIT:
-                #print("JIT")
                 self.jump_true(params)
             elif opcode == JIF:
-                #print("JIF")
                 self.jump_false(params)
             elif opcode == EQUAL:
-                #print("EQUAL")
                 self.equals(params)
             elif opcode == LESS:
-                #print("LESS")
                 self.less(params)
             elif opcode == UREL:
-                #print("doing it")
                 self.update_relative(params)
             elif opcode == END:
-                #print("END")
                 self.finished = True
             
         return self.output
@@ -179,7 +164,6 @@ class IntComputer():
     def __instruction(self):
         opcode = self.program[self.counter]
         params = [0]*3
-      #  print(opcode)
         if opcode == 99:
             return opcode, params
 
