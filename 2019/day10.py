@@ -19,7 +19,6 @@ class AstroidMap():
             self.astroid_map.append(map_row)
 
     def __calc_detect_count(self, station_location):
-        station_location = [3, 4]
         detect_count = 0
         base    = {'x': station_location[0], 'y': station_location[1]} 
         astroid = {'x': 0, 'y': 0}
@@ -28,17 +27,34 @@ class AstroidMap():
         for row in range(len(self.astroid_map)):
             for col in range(len(self.astroid_map[row])):
 
-                if row == a['x'] and a['y'] == col:
-                    continue
                 astroid['x'] = row
                 astroid['y'] = col
 
-            for row2 in range(len(self.astroid_map)):
-                for col2 in range(len(self.astroid_map[row2])):
-                    if (row2 == rol and col2 == col) or row2 == base['x'] and col2 == base['y']:
-                        continue
+                if base['x'] == astroid['x'] and base['y'] == astroid['y']:
+                    continue
 
-                        detect_count += 1
+                if self.astroid_map[astroid['x']][astroid['y']] == 0:
+                    continue
+
+                # Check if anything in the way of astroid and station
+                in_the_way = False
+                for row2 in range(len(self.astroid_map)):
+                    for col2 in range(len(self.astroid_map[row2])):
+                        between['x'] = col2
+                        between['y'] = row2
+
+                        if ((between['x'] == astroid['x'] and between['y'] == astroid['y']) or (between['x'] == base['x'] and between['y'] == base['y'])):
+                            continue
+
+                        if self.astroid_map[between['x']][between['y']] == 0:
+                            continue
+
+                        if self.is_between(base, astroid, between):
+                            in_the_way = True
+                
+                if not in_the_way:
+                    detect_count += 1
+        return detect_count
 
         print(detect_count)
 
@@ -59,16 +75,19 @@ class AstroidMap():
         return True
     
     def find_best_location(self):
-        can_detect = dict()
+        can_detect = []
         row = 0
         col = 0
-        #for row in range(len(self.astroid_map)):
-           # for col in range(len(self.astroid_map[row])):
-        can_detect[(row, col)] = self.__calc_detect_count([row, col])
+        for row in range(len(self.astroid_map)):
+           for col in range(len(self.astroid_map[row])):
+                if self.astroid_map[row][col] == 0:
+                   continue
+                print(row, col)
+                can_detect.append(self.__calc_detect_count([row, col]))
 
-        print(self.astroid_map)
+        return max(can_detect)
+
 
 astroid_map = AstroidMap('day10_input.txt')
-astroid_map.find_best_location()
-        
-
+answer = astroid_map.find_best_location()
+print(answer)
