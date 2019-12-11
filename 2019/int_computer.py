@@ -29,7 +29,6 @@ class IntComputer():
         self.relative = 0
         self.output = 0
         self.load_values = []
-        self.load_index = 0
         self.program = program
         self.interrupt=interrupt
         self.program_len = len(self.program)
@@ -52,8 +51,7 @@ class IntComputer():
         if len(self.load_values) == 0:
             value = int(input())
         else:
-            value = self.load_values[self.load_index]
-            self.load_index += 1
+            value = self.load_values.pop(0)
 
         if params[0] == POS:
             self.program[self.program[self.counter + 1]] = value
@@ -72,7 +70,7 @@ class IntComputer():
         elif params[0] == REL:
             self.output = self.program[self.program[self.counter + 1] + self.relative]
 
-        print("PRINT: " + str(self.output))
+        #print("PRINT: " + str(self.output))
         self.__update_pointer(self.counter + 2)
 
     def add(self, params):
@@ -196,4 +194,3 @@ class IntComputer():
         self.counter = 0
         self.output = 0
         self.load_values = []
-        self.load_index = 0
