@@ -3,7 +3,6 @@ from int_computer import read_input
 import numpy as np
 import matplotlib.pyplot
 
-
 BLACK = 0
 WHITE = 1
 LEFT = 0
@@ -40,7 +39,6 @@ class PaintRobot():
         print("STARTING ROBOT", robot)
         start_color = WHITE
         self.computer.add_load_value(WHITE)
-        print(robot, robot_direction)
         while not self.computer.finished:
 
             color = self.computer.run()
@@ -78,10 +76,6 @@ class PaintRobot():
             curr_color = self.panel[robot[0]][robot[1]]
             self.computer.add_load_value(curr_color)
 
-            print("Current panel color:", curr_color)
-            print("Paint:", color, "Turn: ", ('LEFT' if turn == 0 else 'RIGHT'))
-            print(robot, robot_direction)
-
             if repr(robot) not in self.unique_locations:
                 self.unique_locations[repr(robot)] = 1
 
@@ -90,10 +84,11 @@ class PaintRobot():
 
     def save_panel(self):
         matplotlib.pyplot.imsave('day11_message.png', self.panel)
+
 program = read_input('day11_input.txt')
 program.extend([0] * 100000) # Lengthen for more memory
 
 robot = PaintRobot(program)
 unique_locations = robot.paint_panel()
-robot.save_panel()
 print(unique_locations)
+robot.save_panel()
